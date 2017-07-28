@@ -221,9 +221,193 @@ Some examples:
 "47 + 53" = 100.0999984741211 (100)
 "11 + 59" = 70.4800033569336 (70)
 
+### Interpretation
+Scales well, but takes a long time to train.
+
+
+
+## 10. (string output!)
+Now using string output to get the result instead of a normal value.
+MAX_NUMBER = 9
+HIDDEN_SIZE = 2
+BATCH_SIZE = 1
+no dropout
+Canceled after 200 epochs
+
+### Results
+Epoch 200/200
+1s - loss: 1.2161 - val_loss: 1.5132
+
+Some examples:
+"3 + 9" = 11 (12)
+"6 + 1" = 8  (7 )
+"6 + 7" = 11 (13)
+"2 + 9" = 1  (11)
+"8 + 7" = 11 (15)
+"0 + 2" = 8  (2 )
+"9 + 0" = 1  (9 )
+"6 + 4" = 16 (10)
+"6 + 8" = 11 (14)
+"7 + 1" = 8  (8 )
+
+### Interpretation
+Kinda learning it a little bit. Likes using "11".
+
+
+
+## 11.
+Same but with HIDDEN_SIZE = 4 and dropout.
+
+### Results
+Epoch 221/800
+1s - loss: 1.5035 - val_loss: 1.8091
+
+Some examples:
+"9 + 4" = 11 (13)
+"4 + 1" = 1  (5 )
+"4 + 2" = 11 (6 )
+"3 + 0" = 1  (3 )
+"7 + 6" = 11 (13)
+"4 + 0" = 1  (4 )
+"0 + 6" = 1  (6 )
+"5 + 4" = 1  (9 )
+"5 + 9" = 11 (14)
+"5 + 2" = 11 (7 )
+
+### Interpretation
+Not working at all... At least he kinda predicts the number of digits.
+
+
+## 12.
+No dropout, batch size = 128. Metrics = ['accuracy']
+
+### Results
+Epoch 221/800
+1s - loss: 1.5035 - val_loss: 1.8091
+
+Some examples:
+"9 + 4" = 11 (13)
+"4 + 1" = 1  (5 )
+"4 + 2" = 11 (6 )
+"3 + 0" = 1  (3 )
+"7 + 6" = 11 (13)
+"4 + 0" = 1  (4 )
+"0 + 6" = 1  (6 )
+"5 + 4" = 1  (9 )
+"5 + 9" = 11 (14)
+"5 + 2" = 11 (7 )
+
+### Interpretation
+Not working at all... At least he kinda predicts the number of digits.
+
+
+
+## 13.
+More like in example. MAX_NUMBER = 99. N_EXAMPLES = 1000. EPOCHS = 200
+
+### Results
+Epoch 200/200
+500/500 [==============================] - 0s - loss: 1.1524 - acc: 0.6073 - val_loss: 1.3403 - val_acc: 0.4973
+
+Examples:
+"86 + 73" = 137   (expected: 159)
+"4 + 91 " =  59   (expected:  95)
+"86 + 77" = 137   (expected: 163)
+"31 + 85" = 116   (expected: 116)
+"86 + 92" = 131   (expected: 178)
+"21 + 23" =  46   (expected:  44)
+"48 + 98" = 138   (expected: 146)
+"59 + 55" = 116   (expected: 114)
+"72 + 17" =  81   (expected:  89)
+"8 + 42 " =  38   (expected:  50)
+"16 + 41" =  67   (expected:  57)
+"3 + 93 " =  70   (expected:  96)
+"71 + 14" =  81   (expected:  85)
+"78 + 5 " =  96   (expected:  83)
+"46 + 95" = 138   (expected: 141)
+"6 + 4  " =  18   (expected:  10)
+"78 + 41" = 106   (expected: 119)
+"97 + 33" = 136   (expected: 130)
+"26 + 9 " =  70   (expected:  35)
+"23 + 17" =  45   (expected:  40)
+
+
+### Interpretation
+With more training examples, it seems to be getting there! With more epochs,
+this should work.
+
+
+## 14.
+Same but with more N_EXAMPLES = 2000 and more epochs
+
+### Results
+Epoch 375
+1000/1000 [==============================] - 0s - loss: 0.1024 - acc: 0.9890 - val_loss: 0.4133 - val_acc: 0.8587
+Examples:
+"53 + 75" = 128   (expected: 128)
+"68 + 91" = 159   (expected: 159)
+"2 + 5  " =  16   (expected:   7)
+"85 + 43" = 128   (expected: 128)
+"88 + 78" = 165   (expected: 166)
+"58 + 35" =  93   (expected:  93)
+"84 + 83" = 167   (expected: 167)
+"56 + 41" =  97   (expected:  97)
+"45 + 49" =  94   (expected:  94)
+"22 + 47" =  69   (expected:  69)
+"51 + 73" = 124   (expected: 124)
+"27 + 31" =  57   (expected:  58)
+"73 + 19" =  92   (expected:  92)
+"56 + 66" = 123   (expected: 122)
+"47 + 72" = 119   (expected: 119)
+"74 + 34" = 108   (expected: 108)
+"69 + 32" = 101   (expected: 101)
+"83 + 60" = 143   (expected: 143)
+"50 + 69" = 118   (expected: 119)
+"39 + 95" = 134   (expected: 134)
+
+
+### Interpretation
+Wow! Really good! Just some small errors. Really bad on the small numbers,
+though. Why?
+
+
+## 15.
+Same but with N_EXAMPLES = 4000 and better padding of numbers.
+
+### Results
+Epoch 800
+2000/2000 [==============================] - 1s - loss: 0.2582 - acc: 0.9312 - val_loss: 0.3447 - val_acc: 0.8738
+
+Examples:
+"23 + 30" =  52   (expected:  53)
+" 2 + 34" =  35   (expected:  36)
+"19 + 26" =  45   (expected:  45)
+"67 + 15" =  82   (expected:  82)
+" 7 + 49" =  57   (expected:  56)
+"38 + 32" =  70   (expected:  70)
+"23 + 41" =  64   (expected:  64)
+"53 + 28" =  81   (expected:  81)
+"96 + 78" = 175   (expected: 174)
+"16 + 73" =  89   (expected:  89)
+"14 + 94" = 108   (expected: 108)
+"69 + 87" = 156   (expected: 156)
+"23 + 26" =  49   (expected:  49)
+"86 + 21" = 107   (expected: 107)
+"96 + 14" = 110   (expected: 110)
+"78 + 80" = 157   (expected: 158)
+"71 + 26" =  97   (expected:  97)
+" 4 +  2" =   4   (expected:   6)
+"49 + 60" = 109   (expected: 109)
+"42 + 37" =  79   (expected:  79)
+
+### Interpretation
+Mostly correct except last digit off by 1 sometimes. Biggest problems are
+still the equations with very low numbers... I wonder why?
+It was still converging at epoch 800, but very very slowly.
+
+
 
 ## Further Experiments
+- Try out
 - Does it scale with the numbers? Train up to 50, then test on 50-60.
   For that, it really needs to understand basic math and decimal system.
-- For arbitrary results, we'll have to use the same method as the aXb guy...
-  Meaning, we sample the result.

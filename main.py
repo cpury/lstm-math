@@ -13,18 +13,20 @@ from keras.callbacks import EarlyStopping
 
 
 MIN_NUMBER = 0
-MAX_NUMBER = 9
+MAX_NUMBER = 99
 OPERATIONS = ['+']
 N_OPERATIONS = 1
 MAX_N_EXAMPLES = (MAX_NUMBER - MIN_NUMBER) ** (N_OPERATIONS + 1)
-N_EXAMPLES = min(MAX_N_EXAMPLES, 100000)
+N_EXAMPLES = 4000  # min(MAX_N_EXAMPLES, 100000)
 N_FEATURES = 10 + len(OPERATIONS) + 1
-MAX_EQUATION_LENGTH = len(str(MAX_NUMBER)) * 2 + 3
-MAX_RESULT_LENGTH = len(str(MAX_NUMBER * (N_OPERATIONS + 1)))  # TODO only with addition
+MAX_NUMBER_LENGTH_LEFT_SIDE = len(str(MAX_NUMBER))
+MAX_NUMBER_LENGTH_RIGHT_SIDE = len(str(MAX_NUMBER * (N_OPERATIONS + 1)))  # TODO addition-specific
+MAX_EQUATION_LENGTH = MAX_NUMBER_LENGTH_LEFT_SIDE * 2 + 3
+MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE  # TODO only with addition
 SPLIT = .5
-EPOCHS = 400
-BATCH_SIZE = 1
-HIDDEN_SIZE = 4
+EPOCHS = 800
+BATCH_SIZE = 128
+HIDDEN_SIZE = 64
 
 
 def generate_number(
@@ -68,23 +70,22 @@ def generate_all_basic_math(
         permutations = list(permutations)
         random.shuffle(permutations)
 
-    pad_size = None
-    if pad:
-        pad_size = MAX_EQUATION_LENGTH
-
     i = 0
 
     for n1, n2 in permutations:
         if max_count and i >= max_count:
             return
 
-        output = str(n1)
-        operation = random.choice(OPERATIONS)
-        output += ' {} {}'.format(operation, n2)
-
+        n1 = str(n1)
+        n2 = str(n2)
         if pad:
-            while len(output) < pad_size:
-                output += ' '
+            while len(n1) < MAX_NUMBER_LENGTH_LEFT_SIDE:
+                n1 = ' ' + n1
+            while len(n2) < MAX_NUMBER_LENGTH_LEFT_SIDE:
+                n2 = ' ' + n2
+
+        operation = random.choice(OPERATIONS)
+        output = '{} {} {}'.format(n1, operation, n2)
 
         yield output
         i += 1
@@ -173,7 +174,7 @@ def build_dataset():
     for i, equation in enumerate(equations[:n_test]):
         result = str(eval(equation))
         while len(result) < MAX_RESULT_LENGTH:
-            result += ' '
+            result = ' ' + result
 
         for t, char in enumerate(equation):
             x_test[i, t, char_to_one_hot_index(char)] = 1
@@ -186,7 +187,7 @@ def build_dataset():
     for i, equation in enumerate(equations[n_test:]):
         result = str(eval(equation))
         while len(result) < MAX_RESULT_LENGTH:
-            result += ' '
+            result = ' ' + result
 
         for t, char in enumerate(equation):
             x_train[i, t, char_to_one_hot_index(char)] = 1
@@ -199,6 +200,7 @@ def build_dataset():
 
 def build_model():
     input_shape = (MAX_EQUATION_LENGTH, N_FEATURES)
+    batch_input_shape = (BATCH_SIZE, MAX_EQUATION_LENGTH, N_FEATURES)
 
     model = Sequential()
 
@@ -207,7 +209,8 @@ def build_model():
         LSTM(
             HIDDEN_SIZE,
             input_shape=input_shape,
-            return_sequences=False,
+            # batch_input_shape=batch_input_shape,
+            # return_sequences=False,
         )
     )
 
@@ -220,13 +223,14 @@ def build_model():
     model.add(
         LSTM(
             HIDDEN_SIZE,
+            # stateful=True,
             return_sequences=True,
         )
     )
 
-    model.add(
-        Dropout(.5)
-    )
+    # model.add(
+    #     Dropout(.5)
+    # )
 
     model.add(
         TimeDistributed(Dense(N_FEATURES))
@@ -236,46 +240,74 @@ def build_model():
         Activation('softmax')
     )
 
-    model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+    model.compile(
+        loss='categorical_crossentropy',
+        optimizer='adam',
+        metrics=['accuracy'],
+    )
 
     return model
+
+
+def print_examples(n, model, testX, testY):
+    print('Examples:')
+    predictions = model.predict(testX[:n])
+
+    for i in range(len(predictions)):
+        print('"{}" = {}   (expected: {})'.format(
+            one_hot_to_str(testX[i]),
+            prediction_to_str(predictions[i]),
+            one_hot_to_str(testY[i]),
+        ))
 
 
 def main():
     model = build_model()
 
-    print(model.summary() + '\n\n')
+    model.summary()
+    print()
 
     testX, testY, trainX, trainY = build_dataset()
 
+    epoch_batch_size = 20
+
     try:
-        model.fit(
-            trainX, trainY,
-            epochs=EPOCHS,
-            batch_size=BATCH_SIZE,
-            verbose=2,
-            validation_data=(testX, testY),
-            callbacks=[
-                EarlyStopping(
-                    patience=20,
-                ),
-            ]
-        )
+        for iteration in range(int(EPOCHS / epoch_batch_size)):
+            print()
+            print('-' * 50)
+            print('Iteration', iteration)
+            model.fit(
+                trainX, trainY,
+                epochs=epoch_batch_size,
+                batch_size=BATCH_SIZE,
+                # verbose=1,
+                validation_data=(testX, testY),
+            )
+            sleep(0.01)
+
+            print()
+            print_examples(5, model, testX, testY)
+            print()
+
+        # model.fit(
+        #     trainX, trainY,
+        #     epochs=EPOCHS,
+        #     batch_size=BATCH_SIZE,
+        #     verbose=2,
+        #     validation_data=(testX, testY),
+        #     callbacks=[
+        #         EarlyStopping(
+        #             patience=20,
+        #         ),
+        #     ]
+        # )
     except KeyboardInterrupt:
         print(' Got Sigint')
     finally:
         sleep(0.1)
         model.save('model.h5')
 
-        print('\nSome examples:')
-        predictions = model.predict(testX[:10])
-
-        for i in range(len(predictions)):
-            print('"{}" = {} ({})'.format(
-                one_hot_to_str(testX[i]),
-                prediction_to_str(predictions[i]),
-                one_hot_to_str(testY[i]),
-            ))
+        print_examples(20, model, testX, testY)
 
 
 if __name__ == '__main__':
