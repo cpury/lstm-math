@@ -26,7 +26,10 @@ MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE  # TODO only with addition
 SPLIT = .5
 EPOCHS = 800
 BATCH_SIZE = 128
-HIDDEN_SIZE = 64
+HIDDEN_SIZE = 128
+ENCODER_DEPTH = 1
+DECODER_DEPTH = 1
+DROPOUT = .5
 
 
 def generate_number(
@@ -205,40 +208,34 @@ def build_model():
     model = Sequential()
 
     # Encoder:
-    model.add(
-        LSTM(
-            HIDDEN_SIZE,
-            input_shape=input_shape,
-            # batch_input_shape=batch_input_shape,
-            # return_sequences=False,
-        )
-    )
+    model.add(LSTM(
+        HIDDEN_SIZE,
+        input_shape=input_shape,
+        # batch_input_shape=batch_input_shape,
+        # return_sequences=False,
+    ))
+
+    # model.add(Dropout(DROPOUT))
+
+    # for _ in range(1, ENCODER_DEPTH):
+    #     model.add(LSTM(HIDDEN_SIZE))
+    #     model.add(Dropout(DROPOUT))
 
     # Repeats the input n times
-    model.add(
-        RepeatVector(MAX_RESULT_LENGTH)
-    )
+    model.add(RepeatVector(MAX_RESULT_LENGTH))
 
     # Decoder:
-    model.add(
-        LSTM(
+    for _ in range(DECODER_DEPTH):
+        model.add(LSTM(
             HIDDEN_SIZE,
-            # stateful=True,
             return_sequences=True,
-        )
-    )
+        ))
 
-    # model.add(
-    #     Dropout(.5)
-    # )
+        model.add(Dropout(DROPOUT))
 
-    model.add(
-        TimeDistributed(Dense(N_FEATURES))
-    )
+    model.add(TimeDistributed(Dense(N_FEATURES)))
 
-    model.add(
-        Activation('softmax')
-    )
+    model.add(Activation('softmax'))
 
     model.compile(
         loss='categorical_crossentropy',

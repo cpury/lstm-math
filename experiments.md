@@ -6,6 +6,7 @@ recurrent_activation='hard_sigmoid'
 optimizer='adam'
 
 ### Result:
+```
 Epoch 83/200
 1s - loss: 0.3850 - val_loss: 0.4438
 
@@ -20,6 +21,7 @@ Some examples:
 "6 + 2" = 7.825167179107666 (8)
 "7 + 4" = 10.902262687683105 (11)
 "8 + 1" = 8.627217292785645 (9)
+```
 
 ### Interpretation
 Can learn simple addition with 2 LSTM units. Would have converged further.
@@ -31,6 +33,7 @@ Learning rate can probably be improved.
 Same but with recurrent_activation='relu'
 
 ### Result:
+```
 Epoch 89/200
 0s - loss: 0.3442 - val_loss: 0.7308
 
@@ -45,6 +48,7 @@ Some examples:
 "0 + 9" = 8.189338684082031 (9)
 "1 + 8" = 7.226089000701904 (9)
 "5 + 7" = 11.940388679504395 (12)
+```
 
 ### Interpretation
 recurrent_activation doesn't need to be relu, it seems.
@@ -59,6 +63,7 @@ optimizer = RMSprop(
 )
 
 ### Result
+```
 Epoch 30/200
 1s - loss: 5.4777 - val_loss: 7.8369
 
@@ -73,6 +78,7 @@ Some examples:
 "5 + 8" = 10.0 (13)
 "3 + 6" = 7.210000038146973 (9)
 "6 + 2" = 6.039999961853027 (8)
+```
 
 ### Interpretation
 Terrible... Either RMSprop sucks for this, or learning rate, or gradient clipping.
@@ -83,6 +89,7 @@ Terrible... Either RMSprop sucks for this, or learning rate, or gradient clippin
 Same as 3. but without gradient clipping
 
 ### Result
+```
 Epoch 152/200
 1s - loss: 0.3278 - val_loss: 2.1981
 
@@ -97,6 +104,7 @@ Some examples:
 "3 + 7" = 9.930000305175781 (10)
 "3 + 0" = 4.010000228881836 (3)
 "4 + 6" = 10.0 (10)
+```
 
 ### Interpretation
 RMSprop: Slower and just not as good
@@ -109,6 +117,7 @@ LSTM(4, no activation) -> DROPOUT(.5) -> DENSE(1)
 'adam'
 
 ### Results
+```
 Epoch 200/200
 1s - loss: 6.7605 - val_loss: 2.0614
 
@@ -123,6 +132,7 @@ Some examples:
 "0 + 9" = 8.010000228881836 (9)
 "0 + 1" = 3.4000000953674316 (1)
 "1 + 0" = 3.0899999141693115 (1)
+```
 
 ### Interpretation
 Not as good as 1. lol... Would have converged further, though. Why so slow?
@@ -134,6 +144,7 @@ But very clean conversion.
 Same as 5. but with relu activation in LSTM layer
 
 ### Results
+```
 Epoch 125/400
 1s - loss: 14.8930 - val_loss: 9.3832
 
@@ -148,6 +159,7 @@ Some examples:
 "4 + 2" = 6.380000114440918 (6)
 "7 + 1" = 7.730000019073486 (8)
 "0 + 9" = 6.78000020980835 (9)
+```
 
 ### Interpretation
 Much worse to use RELU for some reason.
@@ -157,6 +169,7 @@ Much worse to use RELU for some reason.
 Same as 1. but without relu in LSTM and longer training
 
 ### Results
+```
 Epoch 400/400
 1s - loss: 0.0134 - val_loss: 0.0251
 
@@ -171,6 +184,7 @@ Some examples:
 "4 + 1" = 5.079999923706055 (5)
 "2 + 5" = 6.909999847412109 (7)
 "6 + 7" = 13.130000114440918 (13)
+```
 
 ### Interpretation
 Close to perfect! This seems to be the best setup.
@@ -181,6 +195,7 @@ Same as 7., but with operations = '-'. This is much harder! There can be
 negative numbers...
 
 ### Results
+```
 Epoch 80/400
 1s - loss: 11.7426 - val_loss: 11.9316
 
@@ -195,6 +210,7 @@ Some examples:
 "7 - 1" = 3.2699999809265137 (6)
 "6 - 3" = 3.5899999141693115 (3)
 "6 - 0" = 3.3299999237060547 (6)
+```
 
 ### Interpretation
 Can't do negative results. This is logical, as relu can't even do negative, lol
@@ -203,9 +219,10 @@ I could add a separate output neuron that would indicate which sign.
 
 
 ## 9.
-Same as 7., but with MAX_NUMBER = 999
+Same as 7., but with `MAX_NUMBER = 999`
 
 ### Results
+```
 Epoch 103/400
 256s - loss: 2.4368 - val_loss: 2.2159
 
@@ -220,6 +237,7 @@ Some examples:
 "88 + 83" = 172.7899932861328 (171)
 "47 + 53" = 100.0999984741211 (100)
 "11 + 59" = 70.4800033569336 (70)
+```
 
 ### Interpretation
 Scales well, but takes a long time to train.
@@ -228,13 +246,16 @@ Scales well, but takes a long time to train.
 
 ## 10. (string output!)
 Now using string output to get the result instead of a normal value.
+```
 MAX_NUMBER = 9
 HIDDEN_SIZE = 2
 BATCH_SIZE = 1
 no dropout
 Canceled after 200 epochs
+```
 
 ### Results
+```
 Epoch 200/200
 1s - loss: 1.2161 - val_loss: 1.5132
 
@@ -249,6 +270,7 @@ Some examples:
 "6 + 4" = 16 (10)
 "6 + 8" = 11 (14)
 "7 + 1" = 8  (8 )
+```
 
 ### Interpretation
 Kinda learning it a little bit. Likes using "11".
@@ -256,9 +278,10 @@ Kinda learning it a little bit. Likes using "11".
 
 
 ## 11.
-Same but with HIDDEN_SIZE = 4 and dropout.
+Same but with `HIDDEN_SIZE = 4` and dropout.
 
 ### Results
+```
 Epoch 221/800
 1s - loss: 1.5035 - val_loss: 1.8091
 
@@ -273,15 +296,17 @@ Some examples:
 "5 + 4" = 1  (9 )
 "5 + 9" = 11 (14)
 "5 + 2" = 11 (7 )
+```
 
 ### Interpretation
 Not working at all... At least he kinda predicts the number of digits.
 
 
 ## 12.
-No dropout, batch size = 128. Metrics = ['accuracy']
+No dropout, `batch size = 128`. `Metrics = ['accuracy']``
 
 ### Results
+```
 Epoch 221/800
 1s - loss: 1.5035 - val_loss: 1.8091
 
@@ -296,6 +321,7 @@ Some examples:
 "5 + 4" = 1  (9 )
 "5 + 9" = 11 (14)
 "5 + 2" = 11 (7 )
+```
 
 ### Interpretation
 Not working at all... At least he kinda predicts the number of digits.
@@ -303,9 +329,10 @@ Not working at all... At least he kinda predicts the number of digits.
 
 
 ## 13.
-More like in example. MAX_NUMBER = 99. N_EXAMPLES = 1000. EPOCHS = 200
+More like in example. `MAX_NUMBER = 99. N_EXAMPLES = 1000. EPOCHS = 200`
 
 ### Results
+```
 Epoch 200/200
 500/500 [==============================] - 0s - loss: 1.1524 - acc: 0.6073 - val_loss: 1.3403 - val_acc: 0.4973
 
@@ -330,6 +357,7 @@ Examples:
 "97 + 33" = 136   (expected: 130)
 "26 + 9 " =  70   (expected:  35)
 "23 + 17" =  45   (expected:  40)
+```
 
 
 ### Interpretation
@@ -338,9 +366,10 @@ this should work.
 
 
 ## 14.
-Same but with more N_EXAMPLES = 2000 and more epochs
+Same but with more `N_EXAMPLES = 2000` and more epochs
 
 ### Results
+```
 Epoch 375
 1000/1000 [==============================] - 0s - loss: 0.1024 - acc: 0.9890 - val_loss: 0.4133 - val_acc: 0.8587
 Examples:
@@ -364,6 +393,7 @@ Examples:
 "83 + 60" = 143   (expected: 143)
 "50 + 69" = 118   (expected: 119)
 "39 + 95" = 134   (expected: 134)
+```
 
 
 ### Interpretation
@@ -372,7 +402,7 @@ though. Why?
 
 
 ## 15.
-Same but with N_EXAMPLES = 4000 and better padding of numbers.
+Same but with `N_EXAMPLES = 4000` and better padding of numbers.
 
 ### Results
 Epoch 800
@@ -407,7 +437,81 @@ It was still converging at epoch 800, but very very slowly.
 
 
 
+
+## 16.
+Same but with `DECODER_DEPTH = 2, DROPOUT = .1`.
+
+### Results
+```
+Epoch 320
+2000/2000 [==============================] - 1s - loss: 0.6623 - acc: 0.7525 - val_loss: 0.6269 - val_acc: 0.7785
+
+Examples:
+"86 + 77" = 165   (expected: 163)
+"23 + 35" =  58   (expected:  58)
+"94 + 16" = 109   (expected: 110)
+"55 + 39" =  94   (expected:  94)
+"63 + 99" = 162   (expected: 162)
+"82 + 66" = 148   (expected: 148)
+"37 + 30" =  68   (expected:  67)
+"24 + 88" = 112   (expected: 112)
+"42 + 33" =  75   (expected:  75)
+" 7 + 98" =  03   (expected: 105)
+"40 + 77" = 117   (expected: 117)
+"46 + 76" = 122   (expected: 122)
+"82 + 35" = 117   (expected: 117)
+"97 + 94" = 192   (expected: 191)
+"41 + 91" = 133   (expected: 132)
+"10 + 77" =  87   (expected:  87)
+"17 + 25" =  42   (expected:  42)
+"44 + 47" =  91   (expected:  91)
+"14 + 20" =  37   (expected:  34)
+"54 + 56" = 110   (expected: 110)
+```
+
+
+### Interpretation
+Deeper decoder network doesn't seem to help much?
+
+
+
+## 17.
+Same but with `DECODER_DEPTH = 1, DROPOUT = .5, HIDDEN_SIZE = 128`.
+
+### Results
+```
+Epoch 323
+ 896/2000 [============>.................] - ETA: 0s - loss: 0.0547 - acc: 0.9880 - val_loss: 0.0548 - val_acc: 0.9838
+
+Examples:
+"36 + 55" =  91   (expected:  91)
+"32 + 45" =  77   (expected:  77)
+"15 + 93" = 108   (expected: 108)
+"41 + 82" = 123   (expected: 123)
+" 4 + 89" =  93   (expected:  93)
+"11 + 89" = 100   (expected: 100)
+"79 + 42" = 121   (expected: 121)
+"92 + 13" = 105   (expected: 105)
+"35 + 22" =  57   (expected:  57)
+"52 + 34" =  86   (expected:  86)
+"85 + 80" = 165   (expected: 165)
+"45 + 41" =  86   (expected:  86)
+"62 + 69" = 131   (expected: 131)
+"54 + 30" =  84   (expected:  84)
+"27 +  0" =  27   (expected:  27)
+"76 + 39" = 115   (expected: 115)
+" 2 + 46" =  48   (expected:  48)
+"45 + 63" = 108   (expected: 108)
+"48 + 26" =  74   (expected:  74)
+"20 + 43" =  63   (expected:  63)
+```
+
+### Interpretation
+Wow! We basically solved it. All examples are correct. So the main problem
+was the hidden size, it seems.
+
+
 ## Further Experiments
-- Try out
+- Try out circular learning rate?
 - Does it scale with the numbers? Train up to 50, then test on 50-60.
   For that, it really needs to understand basic math and decimal system.
