@@ -443,7 +443,7 @@ Same but with `DECODER_DEPTH = 2, DROPOUT = .1`.
 
 ### Results
 ```
-Epoch 320
+Epoch 340
 2000/2000 [==============================] - 1s - loss: 0.6623 - acc: 0.7525 - val_loss: 0.6269 - val_acc: 0.7785
 
 Examples:
@@ -480,7 +480,7 @@ Same but with `DECODER_DEPTH = 1, DROPOUT = .5, HIDDEN_SIZE = 128`.
 
 ### Results
 ```
-Epoch 323
+Epoch 343
  896/2000 [============>.................] - ETA: 0s - loss: 0.0547 - acc: 0.9880 - val_loss: 0.0548 - val_acc: 0.9838
 
 Examples:
@@ -509,6 +509,45 @@ Examples:
 ### Interpretation
 Wow! We basically solved it. All examples are correct. So the main problem
 was the hidden size, it seems.
+
+
+
+## 18.
+Now up the `MAX_NUMBER` to 999 and `N_EXAMPLES` to 40000
+
+### Results
+```
+Epoch 60
+20000/20000 [==============================] - 24s - loss: 0.8991 - acc: 0.6471 - val_loss: 0.8759 - val_acc: 0.6467
+
+Examples:
+"733 + 238" =  971   (expected:  971)
+"732 + 963" = 1686   (expected: 1695)
+"835 + 397" = 1221   (expected: 1232)
+"562 + 292" =  855   (expected:  854)
+"985 + 911" = 1811   (expected: 1896)
+"239 + 345" =  591   (expected:  584)
+"921 + 211" = 1136   (expected: 1132)
+"861 + 333" = 1186   (expected: 1194)
+"963 + 297" = 1251   (expected: 1260)
+"111 +   1" =  128   (expected:  112)
+"801 + 918" = 1711   (expected: 1719)
+"914 + 542" = 1456   (expected: 1456)
+"571 + 247" =  811   (expected:  818)
+"688 + 731" = 1411   (expected: 1419)
+"356 + 763" = 1121   (expected: 1119)
+"192 + 920" = 1111   (expected: 1112)
+"827 + 806" = 1629   (expected: 1633)
+"663 +  51" =  718   (expected:  714)
+"359 + 193" =  561   (expected:  552)
+"703 + 518" = 1210   (expected: 1221)
+```
+
+### Interpretation
+Gets the basic hang of things quickly, probably because of large training
+data. Then takes very long to converge. Will possibly not really converge
+without increasing `HIDDEN_SIZE`
+
 
 
 ## Further Experiments
