@@ -24,6 +24,17 @@ Examples:
 And ideally, after an half an hour CPU-time or so, it will learn (almost)
 perfectly to get the right results :)
 
+Maybe something like:
+
+```
+Examples:
+  36 + 55 =  91   (expected:  91)
+  32 + 45 =  77   (expected:  77)
+  15 + 93 = 108   (expected: 108)
+  41 + 82 = 123   (expected: 123)
+   4 + 89 =  93   (expected:  93)
+```
+
 
 ## Details
 
@@ -58,7 +69,7 @@ self-explanatory. You could e.g.
 * Change the math formulas to be trained on:
   * Change `MAX_NUMBER` to allow higher values in the equations
   * Work with negative numbers by setting `MIN_NUMBER` to something negative
-  * Add multiplication by adding `*` to `OPERATIONS`
+  * Add multiplication by adding `'*'` to `OPERATIONS`
   * Have more operations per equation by increasing `N_OPERATIONS`
   * etc.
 * Change the model to be trained:
