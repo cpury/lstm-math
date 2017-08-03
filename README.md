@@ -40,7 +40,7 @@ but I don't offer any guarantees on that.
 
 0. Set up a virtual env: `virtualenv venv; source venv/bin/activate`
 1. Install the requirements: `pip install -r requirements.txt`
-2. Optional: Open `main.py` and play around with the global config values.
+2. *Optional:* Open `main.py` and play around with the global config values.
 3. `python main.py`
 
 You can cancel the training any time with `ctrl+c`. It will always output some
@@ -55,18 +55,20 @@ be good to hit `ctr+c` once you're happy with the results.
 All the config values at the top of `main.py` should be fairly
 self-explanatory. You could e.g.
 
-* Change the maximum possible number to a higher or lower number
-* Work with negative numbers by setting `MIN_NUMBER` to something negative
-* Add multiplication by adding `*` to `OPERATIONS`
-* Have more operations per equation by increasing `N_OPERATIONS`
-* etc.
+* Change the math formulas to be trained on:
+  * Change `MAX_NUMBER` to allow higher values in the equations
+  * Work with negative numbers by setting `MIN_NUMBER` to something negative
+  * Add multiplication by adding `*` to `OPERATIONS`
+  * Have more operations per equation by increasing `N_OPERATIONS`
+  * etc.
+* Change the model to be trained:
+  * Change the size of the hidden layer(s) with `HIDDEN_SIZE`
+  * Make the encoder deeper with `ENCODER_DEPTH`
+  * Make the decoder deeper with `DECODER_DEPTH`
+  * Use dropout with `DROPOUT`
+  * etc.
 
 
 ## Feedback
 
-Feel free to submit issues if you find bugs or room for improvements.
-
-
-Thanks!
-
-Max
+Feel free to submit issues if you find bugs or room for improvement.
