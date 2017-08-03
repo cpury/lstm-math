@@ -8,9 +8,9 @@ Written by Max Schumacher (@cpury) in Summer 2017.
 """
 
 
+from __future__ import print_function
 import random
 import itertools
-from decimal import Decimal
 from time import sleep
 
 import numpy as np
