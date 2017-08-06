@@ -21,17 +21,25 @@ from keras.layers.wrappers import TimeDistributed
 
 MIN_NUMBER = 0
 MAX_NUMBER = 99
-OPERATIONS = ['+', '-']
+DECIMALS = 0
+
+OPERATIONS = ['+']
 N_OPERATIONS = 1
+
 MAX_N_EXAMPLES = (
     (MAX_NUMBER - MIN_NUMBER) ** (N_OPERATIONS + 1) * len(OPERATIONS)
 )
 N_EXAMPLES = int(round(MAX_N_EXAMPLES / 2.))
-N_FEATURES = 10 + len(OPERATIONS) + 1
-MAX_NUMBER_LENGTH_LEFT_SIDE = max(len(str(MAX_NUMBER)), len(str(MIN_NUMBER)))
-MAX_NUMBER_LENGTH_RIGHT_SIDE = len(str(MAX_NUMBER * (N_OPERATIONS + 1))) + 1
+N_FEATURES = 10 + len(OPERATIONS) + 2
+MAX_NUMBER_LENGTH_LEFT_SIDE = (
+    max(len(str(MAX_NUMBER)), len(str(MIN_NUMBER))) + DECIMALS + 1
+)
+MAX_NUMBER_LENGTH_RIGHT_SIDE = (
+    MAX_NUMBER_LENGTH_LEFT_SIDE * (N_OPERATIONS + 1) + 1 + DECIMALS + 1
+)
 MAX_EQUATION_LENGTH = (MAX_NUMBER_LENGTH_LEFT_SIDE + 2) * (1 + N_OPERATIONS)
 MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE
+
 SPLIT = .5
 EPOCHS = 800
 BATCH_SIZE = 64
@@ -41,13 +49,27 @@ DECODER_DEPTH = 1
 DROPOUT = 0
 
 
-def to_padded_string(number, padding=None):
+def to_padded_string(number, padding=None, decimals=None):
     """
-    Given an object, converts that to a string. If a padding value is given,
-    prefixes with enough spaces to make the final string at least as long as
-    padding.
+    Given a number object, converts that to a string. For non-natural numbers,
+    we can optionally set the number of decimals to round to and print out.
+    If a padding value is given, prefixes with enough spaces to make the final
+    string at least as long as padding.
     """
+    if decimals is not None:
+        number = round(float(number), decimals)
+        if decimals is 0:
+            number = int(number)
+
     string = str(number)
+
+    if decimals:
+        if '.' not in string:
+            string += '.'
+        decimals_length = len(string[string.index('.') + 1:])
+        zero_length = decimals - decimals_length
+        string += '0' * zero_length
+
     if padding is not None and len(string) < padding:
         pad_length = padding - len(string)
         string = (' ' * pad_length) + string
@@ -82,7 +104,11 @@ def generate_all_basic_math(
             return
 
         numbers = [
-            to_padded_string(n, padding=MAX_NUMBER_LENGTH_LEFT_SIDE)
+            to_padded_string(
+                n,
+                padding=MAX_NUMBER_LENGTH_LEFT_SIDE,
+                decimals=DECIMALS,
+            )
             for n in numbers
         ]
 
@@ -91,7 +117,10 @@ def generate_all_basic_math(
             operation = random.choice(OPERATIONS)
             output += ' {} {}'.format(operation, numbers[j + 1])
 
-        yield to_padded_string(output, padding=MAX_EQUATION_LENGTH)
+        yield to_padded_string(
+            output,
+            padding=MAX_EQUATION_LENGTH,
+        )
         i += 1
 
 
@@ -117,15 +146,17 @@ def char_to_one_hot_index(char):
         return int(char)
     elif char in OPERATIONS:
         return 10 + OPERATIONS.index(char)
-    else:
+    elif char == '.':
         return 10 + len(OPERATIONS)
+    else:
+        return 10 + len(OPERATIONS) + 1
 
 
 def char_to_one_hot(char):
     """
     Given a char, encodes it as a one-hot vector based on the encoding above.
     """
-    n_classes = 10 + len(OPERATIONS) + 1
+    n_classes = 10 + len(OPERATIONS) + 2
     return one_hot(char_to_one_hot_index(char), n_classes)
 
 
@@ -142,6 +173,9 @@ def one_hot_index_to_char(index):
 
     if index < len(OPERATIONS):
         return OPERATIONS[index]
+
+    if index == len(OPERATIONS):
+        return '.'
 
     return ' '
 
@@ -197,7 +231,11 @@ def build_dataset():
     )
 
     for i, equation in enumerate(equations[:n_test]):
-        result = to_padded_string(eval(equation), padding=MAX_RESULT_LENGTH)
+        result = to_padded_string(
+            eval(equation),
+            padding=MAX_RESULT_LENGTH,
+            decimals=DECIMALS,
+        )
 
         for t, char in enumerate(equation):
             x_test[i, t, char_to_one_hot_index(char)] = 1
@@ -213,9 +251,11 @@ def build_dataset():
     )
 
     for i, equation in enumerate(equations[n_test:]):
-        result = str(eval(equation))
-        while len(result) < MAX_RESULT_LENGTH:
-            result = ' ' + result
+        result = to_padded_string(
+            eval(equation),
+            padding=MAX_RESULT_LENGTH,
+            decimals=DECIMALS,
+        )
 
         for t, char in enumerate(equation):
             x_train[i, t, char_to_one_hot_index(char)] = 1
