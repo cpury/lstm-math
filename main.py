@@ -77,7 +77,7 @@ def to_padded_string(number, padding=None, decimals=None):
     return string
 
 
-def generate_all_basic_math(
+def generate_all_equations(
     shuffle=True,
     max_count=100,
     padding=True,
@@ -216,7 +216,7 @@ def build_dataset():
     Builds a dataset based on the global config.
     Returns (x_test, y_test, x_train, y_train).
     """
-    generator = generate_all_basic_math(max_count=N_EXAMPLES)
+    generator = generate_all_equations(max_count=N_EXAMPLES)
 
     equations = [x for x in generator]
 
@@ -280,7 +280,6 @@ def build_model():
         input_shape=input_shape,
         return_sequences=(ENCODER_DEPTH > 1),
     ))
-
     model.add(Dropout(DROPOUT))
 
     for i in range(1, ENCODER_DEPTH):
@@ -299,11 +298,9 @@ def build_model():
             HIDDEN_SIZE,
             return_sequences=True,
         ))
-
         model.add(Dropout(DROPOUT))
 
     model.add(TimeDistributed(Dense(N_FEATURES)))
-
     model.add(Activation('softmax'))
 
     model.compile(
@@ -368,7 +365,7 @@ def main():
     except KeyboardInterrupt:
         print(' Got Sigint')
     finally:
-        sleep(0.1)
+        sleep(0.01)
         model.save('model.h5')
 
         print_example_predictions(20, model, x_test, y_test)
