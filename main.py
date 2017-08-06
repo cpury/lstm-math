@@ -79,7 +79,7 @@ def to_padded_string(number, padding=None, decimals=None):
 
 def generate_all_equations(
     shuffle=True,
-    max_count=100,
+    max_count=None,
     padding=True,
 ):
     """
@@ -97,12 +97,10 @@ def generate_all_equations(
         number_permutations = list(number_permutations)
         random.shuffle(number_permutations)
 
-    i = 0
+    if max_count is not None:
+        number_permutations = itertools.islice(number_permutations, max_count)
 
     for numbers in number_permutations:
-        if max_count and i >= max_count:
-            return
-
         numbers = [
             to_padded_string(
                 n,
@@ -112,25 +110,24 @@ def generate_all_equations(
             for n in numbers
         ]
 
-        output = numbers[0]
+        equation = numbers[0]
         for j in range(N_OPERATIONS):
             operation = random.choice(OPERATIONS)
-            output += ' {} {}'.format(operation, numbers[j + 1])
+            equation += ' {} {}'.format(operation, numbers[j + 1])
 
         yield to_padded_string(
-            output,
+            equation,
             padding=MAX_EQUATION_LENGTH,
         )
-        i += 1
 
 
-def one_hot(index, n_classes):
+def one_hot(index, length):
     """
-    Generates a one-hot vector of length n_classes that's 1.0 at index.
+    Generates a one-hot vector of length length that's 1.0 at index.
     """
-    assert index < n_classes
+    assert index < length
 
-    array = np.zeros(n_classes)
+    array = np.zeros(length)
     array[index] = 1.
 
     return array
@@ -156,8 +153,8 @@ def char_to_one_hot(char):
     """
     Given a char, encodes it as a one-hot vector based on the encoding above.
     """
-    n_classes = 10 + len(OPERATIONS) + 2
-    return one_hot(char_to_one_hot_index(char), n_classes)
+    length = 10 + len(OPERATIONS) + 2
+    return one_hot(char_to_one_hot_index(char), length)
 
 
 def one_hot_index_to_char(index):
