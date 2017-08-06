@@ -278,12 +278,16 @@ def build_model():
     model.add(LSTM(
         HIDDEN_SIZE,
         input_shape=input_shape,
+        return_sequences=(ENCODER_DEPTH > 1),
     ))
 
     model.add(Dropout(DROPOUT))
 
-    for _ in range(1, ENCODER_DEPTH):
-        model.add(LSTM(HIDDEN_SIZE))
+    for i in range(1, ENCODER_DEPTH):
+        model.add(LSTM(
+            HIDDEN_SIZE,
+            return_sequences=(i != ENCODER_DEPTH - 1)
+        ))
         model.add(Dropout(DROPOUT))
 
     # Repeats the input n times
