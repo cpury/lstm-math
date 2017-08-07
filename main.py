@@ -19,6 +19,7 @@ from keras.layers import LSTM, Dense, Dropout, Activation, RepeatVector
 from keras.layers.wrappers import TimeDistributed
 
 from encode import OneHotEncoder
+from visualize import print_activations
 
 
 MIN_NUMBER = 0
@@ -279,6 +280,12 @@ def print_example_predictions(count, model, x_test, y_test):
             encoder.one_hot_to_string(y_test[prediction_indices[i]]),
         ))
 
+        # For the last one, let's visualize the activations
+        if i == count - 1:
+            print('Activations:')
+            print_activations(model, x_test[prediction_indices[i]])
+            print()
+
 
 def main():
     model = build_model()
@@ -288,7 +295,7 @@ def main():
 
     x_test, y_test, x_train, y_train = build_dataset()
 
-    epoch_batch_size = 20
+    epoch_batch_size = 10
 
     print()
     print_example_predictions(5, model, x_test, y_test)
