@@ -18,9 +18,11 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout, Activation, RepeatVector
 from keras.layers.wrappers import TimeDistributed
 
+from encode import OneHotEncoder
+
 
 MIN_NUMBER = 0
-MAX_NUMBER = 99
+MAX_NUMBER = 999
 DECIMALS = 0
 
 OPERATIONS = ['+']
@@ -42,11 +44,24 @@ MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE
 
 SPLIT = .5
 EPOCHS = 800
-BATCH_SIZE = 64
-HIDDEN_SIZE = 128
+BATCH_SIZE = 128
+HIDDEN_SIZE = 32
 ENCODER_DEPTH = 1
 DECODER_DEPTH = 1
 DROPOUT = 0
+
+encoder = OneHotEncoder(OPERATIONS)
+
+
+def prediction_to_string(matrix):
+    """
+    Given the output matrix of the neural network, takes the most likely
+    char predicted at each point and returns the whole string.
+    """
+    return ''.join(
+        encoder.one_hot_index_to_char(np.argmax(vector))
+        for vector in matrix
+    )
 
 
 def to_padded_string(number, padding=None, decimals=None):
@@ -121,101 +136,12 @@ def generate_all_equations(
         )
 
 
-def one_hot(index, length):
-    """
-    Generates a one-hot vector of length length that's 1.0 at index.
-    """
-    assert index < length
-
-    array = np.zeros(length)
-    array[index] = 1.
-
-    return array
-
-
-def char_to_one_hot_index(char):
-    """
-    Given a char, encodes it as an integer to be used in a one-hot vector.
-    Will only work with digits and the operations we use, everything else
-    (including spaces) will be mapped to a single value.
-    """
-    if char.isdigit():
-        return int(char)
-    elif char in OPERATIONS:
-        return 10 + OPERATIONS.index(char)
-    elif char == '.':
-        return 10 + len(OPERATIONS)
-    else:
-        return 10 + len(OPERATIONS) + 1
-
-
-def char_to_one_hot(char):
-    """
-    Given a char, encodes it as a one-hot vector based on the encoding above.
-    """
-    length = 10 + len(OPERATIONS) + 2
-    return one_hot(char_to_one_hot_index(char), length)
-
-
-def one_hot_index_to_char(index):
-    """
-    Given an index, returns the character encoded with that index.
-    Will only work with encoded digits or operations, everything else will
-    return the space character.
-    """
-    if index <= 9:
-        return str(index)
-
-    index -= 10
-
-    if index < len(OPERATIONS):
-        return OPERATIONS[index]
-
-    if index == len(OPERATIONS):
-        return '.'
-
-    return ' '
-
-
-def one_hot_to_char(vector):
-    """
-    Given a one-hot vector, returns the encoded char.
-    """
-    indices = np.nonzero(vector == 1.)
-
-    assert len(indices) == 1
-    assert len(indices[0]) == 1
-
-    return one_hot_index_to_char(indices[0][0])
-
-
-def one_hot_to_string(matrix):
-    """
-    Given a matrix of single one-hot encoded char vectors, returns the
-    encoded string.
-    """
-    return ''.join(one_hot_to_char(vector) for vector in matrix)
-
-
-def prediction_to_string(matrix):
-    """
-    Given the output matrix of the neural network, takes the most likely char
-    predicted at each point and returns the whole string.
-    """
-    return ''.join(
-        one_hot_index_to_char(np.argmax(vector))
-        for vector in matrix
-    )
-
-
 def build_dataset():
     """
     Builds a dataset based on the global config.
     Returns (x_test, y_test, x_train, y_train).
     """
     generator = generate_all_equations(max_count=N_EXAMPLES)
-
-    equations = [x for x in generator]
 
     n_test = round(SPLIT * N_EXAMPLES)
     n_train = N_EXAMPLES - n_test
@@ -227,7 +153,7 @@ def build_dataset():
         (n_test, MAX_RESULT_LENGTH, N_FEATURES), dtype=np.bool
     )
 
-    for i, equation in enumerate(equations[:n_test]):
+    for i, equation in enumerate(itertools.islice(generator, n_test)):
         result = to_padded_string(
             eval(equation),
             padding=MAX_RESULT_LENGTH,
@@ -235,10 +161,10 @@ def build_dataset():
         )
 
         for t, char in enumerate(equation):
-            x_test[i, t, char_to_one_hot_index(char)] = 1
+            x_test[i, t, encoder.char_to_one_hot_index(char)] = 1
 
         for t, char in enumerate(result):
-            y_test[i, t, char_to_one_hot_index(char)] = 1
+            y_test[i, t, encoder.char_to_one_hot_index(char)] = 1
 
     x_train = np.zeros(
         (n_train, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.bool
@@ -247,7 +173,7 @@ def build_dataset():
         (n_train, MAX_RESULT_LENGTH, N_FEATURES), dtype=np.bool
     )
 
-    for i, equation in enumerate(equations[n_test:]):
+    for i, equation in enumerate(generator):
         result = to_padded_string(
             eval(equation),
             padding=MAX_RESULT_LENGTH,
@@ -255,10 +181,10 @@ def build_dataset():
         )
 
         for t, char in enumerate(equation):
-            x_train[i, t, char_to_one_hot_index(char)] = 1
+            x_train[i, t, encoder.char_to_one_hot_index(char)] = 1
 
         for t, char in enumerate(result):
-            y_train[i, t, char_to_one_hot_index(char)] = 1
+            y_train[i, t, encoder.char_to_one_hot_index(char)] = 1
 
     return x_test, y_test, x_train, y_train
 
@@ -309,22 +235,46 @@ def build_model():
     return model
 
 
-def print_example_predictions(n, model, x_test, y_test):
+def build_seq2seq_model():
+    """
+    Builds and returns the model based on the global config, but using the
+    seq2seq library: https://github.com/farizrahman4u/seq2seq
+    """
+    import seq2seq
+    from seq2seq.models import SimpleSeq2Seq
+
+    model = SimpleSeq2Seq(
+        input_dim=5,
+        hidden_dim=HIDDEN_SIZE,
+        output_length=MAX_EQUATION_LENGTH,
+        output_dim=N_FEATURES,
+    )
+
+    model.compile(
+        loss='categorical_crossentropy',
+        optimizer='adam',
+        metrics=['accuracy'],
+    )
+
+    return model
+
+
+def print_example_predictions(count, model, x_test, y_test):
     """
     Print some example predictions along with their target from the test set.
     """
     print('Examples:')
 
     prediction_indices = np.random.choice(
-        x_test.shape[0], size=n, replace=False
+        x_test.shape[0], size=count, replace=False
     )
     predictions = model.predict(x_test[prediction_indices, :])
 
-    for i in range(n):
+    for i in range(count):
         print('{} = {}   (expected: {})'.format(
-            one_hot_to_string(x_test[prediction_indices[i]]),
+            encoder.one_hot_to_string(x_test[prediction_indices[i]]),
             prediction_to_string(predictions[i]),
-            one_hot_to_string(y_test[prediction_indices[i]]),
+            encoder.one_hot_to_string(y_test[prediction_indices[i]]),
         ))
 
 
