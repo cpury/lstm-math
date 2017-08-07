@@ -241,17 +241,19 @@ def build_seq2seq_model():
     seq2seq library: https://github.com/farizrahman4u/seq2seq
     """
     import seq2seq
-    from seq2seq.models import SimpleSeq2Seq
+    from seq2seq.models import Seq2Seq
 
-    model = SimpleSeq2Seq(
-        input_dim=5,
+    model = Seq2Seq(
+        input_dim=N_FEATURES,
+        input_length=MAX_EQUATION_LENGTH,
         hidden_dim=HIDDEN_SIZE,
-        output_length=MAX_EQUATION_LENGTH,
+        output_length=MAX_RESULT_LENGTH,
         output_dim=N_FEATURES,
+        depth=(ENCODER_DEPTH, DECODER_DEPTH),
     )
 
     model.compile(
-        loss='categorical_crossentropy',
+        loss='mse',
         optimizer='adam',
         metrics=['accuracy'],
     )
