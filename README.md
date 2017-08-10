@@ -39,9 +39,9 @@ Examples:
 ## Details
 
 This uses a Seq2Seq model based on LSTMs in Keras. Depending on the complexity
-of equations you choose, it will train on ca. 25% of the complete equation
-space and validate on another, different 25%. So all the equations you see
-in the example above have not been seen by the network before.
+of equations you choose, it will train on some small percentage of the complete
+equation space and validate on another small percentage. So all the equations you
+see in the example above have not been seen by the network before.
 
 
 ## Running it yourself
