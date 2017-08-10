@@ -2,6 +2,12 @@ import numpy as np
 
 
 class OneHotEncoder:
+    """
+    Convert characters and strings to one hot vectors and back.
+    Uses argmax, so you can also pass softmax one-hot vectors and it will
+    return the value with the highest probability.
+    """
+
     def __init__(self, operations):
         self.operations = operations
 
@@ -62,12 +68,7 @@ class OneHotEncoder:
         """
         Given a one-hot vector, returns the encoded char.
         """
-        indices = np.nonzero(vector == 1.)
-
-        assert len(indices) == 1
-        assert len(indices[0]) == 1
-
-        return self.one_hot_index_to_char(indices[0][0])
+        return self.one_hot_index_to_char(np.argmax(vector))
 
     def one_hot_to_string(self, matrix):
         """

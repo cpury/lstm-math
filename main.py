@@ -48,23 +48,12 @@ MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE
 SPLIT = .5
 EPOCHS = 800
 BATCH_SIZE = 128
-HIDDEN_SIZE = 128
+HIDDEN_SIZE = 256
 ENCODER_DEPTH = 1
 DECODER_DEPTH = 1
-DROPOUT = 0.5
+DROPOUT = 0.25
 
 encoder = OneHotEncoder(OPERATIONS)
-
-
-def prediction_to_string(matrix):
-    """
-    Given the output matrix of the neural network, takes the most likely
-    char predicted at each point and returns the whole string.
-    """
-    return ''.join(
-        encoder.one_hot_index_to_char(np.argmax(vector))
-        for vector in matrix
-    )
 
 
 def to_padded_string(number, padding=None, decimals=None):
@@ -278,7 +267,7 @@ def print_example_predictions(count, model, x_test, y_test):
     for i in range(count):
         print('{} = {}   (expected: {})'.format(
             encoder.one_hot_to_string(x_test[prediction_indices[i]]),
-            prediction_to_string(predictions[i]),
+            encoder.one_hot_to_string(predictions[i]),
             encoder.one_hot_to_string(y_test[prediction_indices[i]]),
         ))
 
@@ -298,6 +287,15 @@ def main():
     x_test, y_test, x_train, y_train = build_dataset()
 
     epoch_batch_size = 10
+
+    # Evaluate the model before training to get a feel for the metrics:
+    loss, accuracy = model.evaluate(x_test, y_test, batch_size=BATCH_SIZE)
+
+    print()
+    print('Before training. val_loss: {:.4} - val_acc: {:.4}'.format(
+        loss, accuracy
+    ))
+    print()
 
     print()
     print_example_predictions(5, model, x_test, y_test)
