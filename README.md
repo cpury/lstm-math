@@ -1,5 +1,7 @@
 # lstm-math
 
+See the accompanying blog post here: http://cpury.github.io/learning-math/
+
 Train a Seq2Seq network to predict the result of math equations on the
 character level.
 Configuration through global variables because I'm lazy.
