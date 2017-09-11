@@ -281,7 +281,8 @@ def print_example_predictions(count, model, x_test, y_test):
 
         # For the last one, let's visualize the activations
         if i == count - 1:
-            print('Activations:')
+            print()
+            print('Activations for the last example:')
             print_activations(model, x_test[prediction_indices[i]])
             print()
 

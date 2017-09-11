@@ -8,8 +8,21 @@ class OneHotEncoder:
     return the value with the highest probability.
     """
 
-    def __init__(self, operations):
+    def __init__(self, operations, decimals=False):
         self.operations = operations
+        self._chars = [str(n) for n in range(10)] + operations
+
+        if decimals:
+            self._chars.append('.')
+
+        # Catch-all character
+        self._chars.append(' ')
+        self._default_i = len(self._chars) - 1
+
+        self._one_hot_length = len(self._chars)
+
+        self.c_to_i = {i: c for c, i in enumerate(self._chars)}
+        self.i_to_c = {c: i for c, i in enumerate(self._chars)}
 
     def one_hot(self, index, length):
         """
@@ -27,23 +40,18 @@ class OneHotEncoder:
         """
         Given a char, encodes it as an integer to be used in a one-hot vector.
         Will only work with digits and the operations we use, everything else
-        (including spaces) will be mapped to a single value.
+        (including spaces) is mapped to a single value.
         """
-        if char.isdigit():
-            return int(char)
-        elif char in self.operations:
-            return 10 + self.operations.index(char)
-        elif char == '.':
-            return 10 + len(self.operations)
-        else:
-            return 10 + len(self.operations) + 1
+        return self.c_to_i.get(char, self._default_i)
 
     def char_to_one_hot(self, char):
         """
         Given a char, encodes it as a one-hot vector.
         """
-        length = 10 + len(self.operations) + 2
-        return self.one_hot(self.char_to_one_hot_index(char), length)
+        return self.one_hot(
+            self.char_to_one_hot_index(char),
+            self._one_hot_length
+        )
 
     def one_hot_index_to_char(self, index):
         """
@@ -51,22 +59,12 @@ class OneHotEncoder:
         Will only work with encoded digits or operations, everything else will
         return the space character.
         """
-        if index <= 9:
-            return str(index)
-
-        index -= 10
-
-        if index < len(self.operations):
-            return self.operations[index]
-
-        if index == len(self.operations):
-            return '.'
-
-        return ' '
+        return self.i_to_c.get(index, ' ')
 
     def one_hot_to_char(self, vector):
         """
-        Given a one-hot vector, returns the encoded char.
+        Given a one-hot vector or softmax distribution,
+        returns the encoded char.
         """
         return self.one_hot_index_to_char(np.argmax(vector))
 
