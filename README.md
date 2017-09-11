@@ -80,6 +80,8 @@ self-explanatory. You could e.g.
   * Make the decoder deeper with `DECODER_DEPTH`
   * Use dropout with `DROPOUT`
   * etc.
+* Reverse all strings to overcome the digit ordering problem with `REVERSE`
+  (see the blog post for more info)
 
 
 ## Feedback

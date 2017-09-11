@@ -2,11 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_2d_space(model, one_hot_encoder, x, y, n=None):
+def plot_2d_space(model, one_hot_encoder, x, y, n=None, reverse=False):
+    """
+    For models trained on equations ala 'a + b', this will plot a scatter plot
+    with correct examples in green and incorrect ones in red.
+    """
     if n is None:
         n = len(x)
 
-    n = len(x)
+    order = -1 if reverse else 1
 
     predictions = model.predict(x[:n])
 
@@ -16,9 +20,9 @@ def plot_2d_space(model, one_hot_encoder, x, y, n=None):
     for i, prediction in enumerate(predictions):
         target = y[i]
 
-        equation_string = one_hot_encoder.one_hot_to_string(x[i])
-        prediction_string = one_hot_encoder.one_hot_to_string(prediction)
-        target_string = one_hot_encoder.one_hot_to_string(target)
+        equation_string = one_hot_to_string(x[i])[::order]
+        prediction_string = one_hot_to_string(prediction)[::order]
+        target_string = one_hot_to_string(target)[::order]
 
         equation_plus_index = equation_string.index('+')
         n1 = int(equation_string[:equation_plus_index-1])

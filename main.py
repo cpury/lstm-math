@@ -44,8 +44,9 @@ MAX_NUMBER_LENGTH_RIGHT_SIDE = (
 )
 MAX_EQUATION_LENGTH = (MAX_NUMBER_LENGTH_LEFT_SIDE + 2) * (1 + N_OPERATIONS)
 MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE
+REVERSE = True
 
-SPLIT = .5
+SPLIT = .2
 EPOCHS = 800
 BATCH_SIZE = 128
 HIDDEN_SIZE = 256
@@ -138,6 +139,8 @@ def build_dataset():
     n_test = round(SPLIT * N_EXAMPLES)
     n_train = N_EXAMPLES - n_test
 
+    order = -1 if REVERSE else 1
+
     x_test = np.zeros(
         (n_test, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.bool
     )
@@ -152,10 +155,10 @@ def build_dataset():
             decimals=DECIMALS,
         )
 
-        for t, char in enumerate(equation):
+        for t, char in enumerate(equation[::order]):
             x_test[i, t, encoder.char_to_one_hot_index(char)] = 1
 
-        for t, char in enumerate(result):
+        for t, char in enumerate(result[::order]):
             y_test[i, t, encoder.char_to_one_hot_index(char)] = 1
 
     x_train = np.zeros(
@@ -172,10 +175,10 @@ def build_dataset():
             decimals=DECIMALS,
         )
 
-        for t, char in enumerate(equation):
+        for t, char in enumerate(equation[::order]):
             x_train[i, t, encoder.char_to_one_hot_index(char)] = 1
 
-        for t, char in enumerate(result):
+        for t, char in enumerate(result[::order]):
             y_train[i, t, encoder.char_to_one_hot_index(char)] = 1
 
     return x_test, y_test, x_train, y_train
@@ -259,6 +262,8 @@ def print_example_predictions(count, model, x_test, y_test):
     """
     print('Examples:')
 
+    order = -1 if REVERSE else 1
+
     prediction_indices = np.random.choice(
         x_test.shape[0], size=count, replace=False
     )
@@ -266,9 +271,12 @@ def print_example_predictions(count, model, x_test, y_test):
 
     for i in range(count):
         print('{} = {}   (expected: {})'.format(
-            encoder.one_hot_to_string(x_test[prediction_indices[i]]),
-            encoder.one_hot_to_string(predictions[i]),
-            encoder.one_hot_to_string(y_test[prediction_indices[i]]),
+            encoder.one_hot_to_string(x_test[prediction_indices[i]])[::order]
+            .strip(),
+            encoder.one_hot_to_string(predictions[i])[::order]
+            .strip(),
+            encoder.one_hot_to_string(y_test[prediction_indices[i]])[::order]
+            .strip(),
         ))
 
         # For the last one, let's visualize the activations
