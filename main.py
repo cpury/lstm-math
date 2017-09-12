@@ -17,6 +17,7 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout, Activation, RepeatVector
 from keras.layers.wrappers import TimeDistributed
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from encode import OneHotEncoder
 from visualize import print_activations
@@ -47,8 +48,8 @@ MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE
 REVERSE = True
 
 SPLIT = .2
-EPOCHS = 800
-BATCH_SIZE = 128
+EPOCHS = 200
+BATCH_SIZE = 64
 HIDDEN_SIZE = 256
 ENCODER_DEPTH = 1
 DECODER_DEPTH = 1
@@ -295,8 +296,6 @@ def main():
 
     x_test, y_test, x_train, y_train = build_dataset()
 
-    epoch_batch_size = 10
-
     # Evaluate the model before training to get a feel for the metrics:
     loss, accuracy = model.evaluate(x_test, y_test, batch_size=BATCH_SIZE)
 
@@ -310,30 +309,26 @@ def main():
     print_example_predictions(5, model, x_test, y_test)
     print()
 
-    try:
-        for iteration in range(int(EPOCHS / epoch_batch_size)):
-            print()
-            print('-' * 50)
-            print('Iteration', iteration)
-            model.fit(
-                x_train, y_train,
-                epochs=epoch_batch_size,
-                batch_size=BATCH_SIZE,
-                validation_data=(x_test, y_test),
-            )
-            sleep(0.01)
+    model.fit(
+        x_train, y_train,
+        epochs=EPOCHS,
+        batch_size=BATCH_SIZE,
+        validation_data=(x_test, y_test),
+        callbacks=[
+            EarlyStopping(
+                patience=20,
+            ),
+            ModelCheckpoint(
+                'model.h5',
+                save_best_only=True,
+            ),
+        ]
+    )
+    sleep(0.01)
 
-            print()
-            print_example_predictions(5, model, x_test, y_test)
-            print()
-
-    except KeyboardInterrupt:
-        print(' Got Sigint')
-    finally:
-        sleep(0.01)
-        model.save('model.h5')
-
-        print_example_predictions(20, model, x_test, y_test)
+    print()
+    print_example_predictions(20, model, x_test, y_test)
+    print()
 
 
 if __name__ == '__main__':
