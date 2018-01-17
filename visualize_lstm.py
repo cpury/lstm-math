@@ -139,7 +139,7 @@ def plot_weights(weights, labels=None):
     """
     fig = plt.figure(1)
     ax = fig.add_subplot(111)
-    ax.imshow(weights, vmin=-1., vmax=1., cmap='RdBu', interpolation='nearest')
+    ax.imshow(weights, vmin=-1., vmax=1., cmap='bwr', interpolation='nearest')
 
     ax.axes.get_xaxis().set_visible(False)
     ax.axes.get_yaxis().set_visible(False)

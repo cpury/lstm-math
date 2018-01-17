@@ -16,8 +16,10 @@ from time import sleep
 import numpy as np
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout, Activation, RepeatVector
-from keras.layers.wrappers import TimeDistributed
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers.wrappers import TimeDistributed, Bidirectional
+from keras.layers.normalization import BatchNormalization
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import Adam
 
 from encode import OneHotEncoder
 from visualize import print_activations
@@ -47,13 +49,15 @@ MAX_EQUATION_LENGTH = (MAX_NUMBER_LENGTH_LEFT_SIDE + 2) * (1 + N_OPERATIONS)
 MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE
 REVERSE = True
 
-SPLIT = .2
+SPLIT = .1
+LEARNING_RATE = 0.01
 EPOCHS = 200
-BATCH_SIZE = 64
-HIDDEN_SIZE = 256
+BATCH_SIZE = 256
+HIDDEN_SIZE = 20
 ENCODER_DEPTH = 1
 DECODER_DEPTH = 1
-DROPOUT = 0.25
+DROPOUT = 0
+BATCH_NORM = True
 
 encoder = OneHotEncoder(OPERATIONS)
 
@@ -194,37 +198,45 @@ def build_model():
     model = Sequential()
 
     # Encoder:
-    model.add(LSTM(
+    model.add(Bidirectional(LSTM(
         HIDDEN_SIZE,
-        input_shape=input_shape,
         return_sequences=(ENCODER_DEPTH > 1),
-    ))
-    model.add(Dropout(DROPOUT))
+    ), input_shape=input_shape))
+    if BATCH_NORM:
+        model.add(BatchNormalization())
+    if DROPOUT:
+        model.add(Dropout(DROPOUT))
 
     for i in range(1, ENCODER_DEPTH):
-        model.add(LSTM(
+        model.add(Bidirectional(LSTM(
             HIDDEN_SIZE,
             return_sequences=(i != ENCODER_DEPTH - 1)
-        ))
-        model.add(Dropout(DROPOUT))
+        )))
+        if BATCH_NORM:
+            model.add(BatchNormalization())
+        if DROPOUT:
+            model.add(Dropout(DROPOUT))
 
     # Repeats the input n times
     model.add(RepeatVector(MAX_RESULT_LENGTH))
 
     # Decoder:
     for _ in range(DECODER_DEPTH):
-        model.add(LSTM(
+        model.add(Bidirectional(LSTM(
             HIDDEN_SIZE,
             return_sequences=True,
-        ))
-        model.add(Dropout(DROPOUT))
+        )))
+        if BATCH_NORM:
+            model.add(BatchNormalization())
+        if DROPOUT:
+            model.add(Dropout(DROPOUT))
 
     model.add(TimeDistributed(Dense(N_FEATURES)))
     model.add(Activation('softmax'))
 
     model.compile(
         loss='categorical_crossentropy',
-        optimizer='adam',
+        optimizer=Adam(lr=LEARNING_RATE),
         metrics=['accuracy'],
     )
 
@@ -309,22 +321,21 @@ def main():
     print_example_predictions(5, model, x_test, y_test)
     print()
 
-    model.fit(
-        x_train, y_train,
-        epochs=EPOCHS,
-        batch_size=BATCH_SIZE,
-        validation_data=(x_test, y_test),
-        callbacks=[
-            EarlyStopping(
-                patience=20,
-            ),
-            ModelCheckpoint(
-                'model.h5',
-                save_best_only=True,
-            ),
-        ]
-    )
-    sleep(0.01)
+    try:
+        model.fit(
+            x_train, y_train,
+            epochs=EPOCHS,
+            batch_size=BATCH_SIZE,
+            validation_data=(x_test, y_test),
+            callbacks=[
+                ModelCheckpoint(
+                    'model.h5',
+                    save_best_only=True,
+                ),
+            ]
+        )
+    except KeyboardInterrupt:
+        print('\nCaught SIGINT\n')
 
     print()
     print_example_predictions(20, model, x_test, y_test)
