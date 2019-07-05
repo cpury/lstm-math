@@ -2,6 +2,8 @@
 
 See the accompanying blog post here: http://cpury.github.io/learning-math/
 
+Simply try it yourself in Google Colab: https://colab.research.google.com/github/cpury/lstm-math/blob/master/lstm_math.ipynb (**NEW**)
+
 Train a LSTM-based Seq2Seq network to predict the result of math equations on
 the character level.
 Configuration through global variables because I'm lazy.
