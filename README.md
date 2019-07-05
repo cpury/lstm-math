@@ -2,11 +2,11 @@
 
 See the accompanying blog post here: http://cpury.github.io/learning-math/
 
-Train a Seq2Seq network to predict the result of math equations on the
-character level.
+Train a LSTM-based Seq2Seq network to predict the result of math equations on
+the character level.
 Configuration through global variables because I'm lazy.
 
-Written by Max Schumacher (@cpury) in Summer 2017.
+Written by Max Schumacher (@cpury) in Summer 2017. Updated in Summer 2019.
 
 
 ## Preview

@@ -24,6 +24,7 @@ from keras.optimizers import Adam
 from encode import OneHotEncoder
 from visualize import print_activations
 
+RANDOM_SEED = 1
 
 MIN_NUMBER = 0
 MAX_NUMBER = 999
@@ -57,7 +58,7 @@ HIDDEN_SIZE = 20
 ENCODER_DEPTH = 1
 DECODER_DEPTH = 1
 DROPOUT = 0
-BATCH_NORM = True
+BATCH_NORM = False
 
 encoder = OneHotEncoder(OPERATIONS)
 
@@ -301,12 +302,15 @@ def print_example_predictions(count, model, x_test, y_test):
 
 
 def main():
+    # Fix the random seed to get a consistent dataset
+    random.seed(RANDOM_SEED)
+
+    x_test, y_test, x_train, y_train = build_dataset()
+
     model = build_model()
 
     model.summary()
     print()
-
-    x_test, y_test, x_train, y_train = build_dataset()
 
     # Evaluate the model before training to get a feel for the metrics:
     loss, accuracy = model.evaluate(x_test, y_test, batch_size=BATCH_SIZE)

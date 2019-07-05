@@ -101,7 +101,6 @@ def build_dataset():
 
     return x_test, y_test, x_train, y_train
 
-from __future__ import print_function
 
 def print_example_predictions(count, model, x_test, y_test):
     """
@@ -126,7 +125,6 @@ def print_example_predictions(count, model, x_test, y_test):
 from keras.models import Sequential
 from keras.layers import LSTM, RepeatVector, Dense, Activation
 from keras.layers.wrappers import TimeDistributed, Bidirectional
-from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
 
 def build_model():
@@ -139,14 +137,12 @@ def build_model():
 
     # Encoder:
     model.add(Bidirectional(LSTM(20), input_shape=input_shape))
-    model.add(BatchNormalization())
 
     # The RepeatVector-layer repeats the input n times
     model.add(RepeatVector(MAX_RESULT_LENGTH))
 
     # Decoder:
     model.add(Bidirectional(LSTM(20, return_sequences=True)))
-    model.add(BatchNormalization())
 
     model.add(TimeDistributed(Dense(N_FEATURES)))
     model.add(Activation('softmax'))
@@ -162,12 +158,15 @@ def build_model():
 from keras.callbacks import ModelCheckpoint
 
 def main():
+    # Fix the random seed to get a consistent dataset
+    random.seed(RANDOM_SEED)
+
+    x_test, y_test, x_train, y_train = build_dataset()
+
     model = build_model()
 
     model.summary()
     print()
-
-    x_test, y_test, x_train, y_train = build_dataset()
 
     # Let's print some predictions now to get a feeling for the equations
     print()
@@ -190,7 +189,24 @@ def main():
     except KeyboardInterrupt:
         print('\nCaught SIGINT\n')
 
+    # Load weights achieving best val_loss from training:
+    model.load_weights('model.h5')
+
     print_example_predictions(20, model, x_test, y_test)
+
+
+def predict(model, equation):
+    """
+    Given a model and an equation string, returns the predicted result.
+    """
+    x = np.zeros((1, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.bool)
+    equation += '\0'
+
+    for t, char in enumerate(equation):
+        x[0, t, CHAR_TO_INDEX[char]] = 1
+
+    predictions = model.predict(x)
+    return one_hot_to_string(predictions[0])[:-1]
 
 
 if __name__ == '__main__':
@@ -210,3 +226,5 @@ MAX_RESULT_LENGTH = MAX_NUMBER_LENGTH_RIGHT_SIDE + 1
 SPLIT = .1
 EPOCHS = 200
 BATCH_SIZE = 256
+
+RANDOM_SEED = 1
