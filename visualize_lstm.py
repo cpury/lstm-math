@@ -1,12 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.layers import LSTM, RepeatVector, Dense, Dropout, Activation
-from keras.layers.wrappers import TimeDistributed
-
-from keras.models import Sequential
-from keras.layers import LSTM, RepeatVector, Dense, Dropout, Activation
-from keras.layers.wrappers import TimeDistributed
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, RepeatVector, Dense, Dropout, Activation, TimeDistributed
 
 
 def _copy_weights(trained_model, new_model):

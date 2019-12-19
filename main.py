@@ -14,12 +14,13 @@ import itertools
 from time import sleep
 
 import numpy as np
-from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout, Activation, RepeatVector
-from keras.layers.wrappers import TimeDistributed, Bidirectional
-from keras.layers.normalization import BatchNormalization
-from keras.callbacks import ModelCheckpoint
-from keras.optimizers import Adam
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import (
+    LSTM, Dense, Dropout, Activation, RepeatVector, TimeDistributed,
+    Bidirectional, BatchNormalization
+)
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.optimizers import Adam
 
 from encode import OneHotEncoder
 from visualize import print_activations
@@ -147,12 +148,8 @@ def build_dataset():
 
     order = -1 if REVERSE else 1
 
-    x_test = np.zeros(
-        (n_test, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.bool
-    )
-    y_test = np.zeros(
-        (n_test, MAX_RESULT_LENGTH, N_FEATURES), dtype=np.bool
-    )
+    x_test = np.zeros((n_test, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.float32)
+    y_test = np.zeros((n_test, MAX_RESULT_LENGTH, N_FEATURES), dtype=np.float32)
 
     for i, equation in enumerate(itertools.islice(generator, n_test)):
         result = to_padded_string(
@@ -293,12 +290,13 @@ def print_example_predictions(count, model, x_test, y_test):
             .strip(),
         ))
 
-        # For the last one, let's visualize the activations
-        if i == count - 1:
-            print()
-            print('Activations for the last example:')
-            print_activations(model, x_test[prediction_indices[i]])
-            print()
+        # XXX This broke in TF 2.0. Please fix some time
+        # # For the last one, let's visualize the activations
+        # if i == count - 1:
+        #     print()
+        #     print('Activations for the last example:')
+        #     print_activations(model, x_test[prediction_indices[i]])
+        #     print()
 
 
 def main():
@@ -313,7 +311,7 @@ def main():
     print()
 
     # Evaluate the model before training to get a feel for the metrics:
-    loss, accuracy = model.evaluate(x_test, y_test, batch_size=BATCH_SIZE)
+    loss, accuracy = model.evaluate(x_test, y_test, batch_size=BATCH_SIZE, verbose=0)
 
     print()
     print('Before training. val_loss: {:.4} - val_acc: {:.4}'.format(
