@@ -58,12 +58,8 @@ def equations_to_x_y(equations, n):
     Given a list of equations, converts them to one-hot vectors to build
     two data matrixes x and y.
     """
-    x = np.zeros(
-        (n, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.bool
-    )
-    y = np.zeros(
-        (n, MAX_RESULT_LENGTH, N_FEATURES), dtype=np.bool
-    )
+    x = np.zeros((n, MAX_EQUATION_LENGTH, N_FEATURES), dtype=np.float32)
+    y = np.zeros((n, MAX_RESULT_LENGTH, N_FEATURES), dtype=np.float32)
 
     # Get the first n_test equations and convert to test vectors
     for i, equation in enumerate(itertools.islice(equations, n)):
@@ -122,10 +118,7 @@ def print_example_predictions(count, model, x_test, y_test):
             one_hot_to_string(y_test[prediction_indices[i]]),
         ))
 
-from keras.models import Sequential
-from keras.layers import LSTM, RepeatVector, Dense, Activation
-from keras.layers.wrappers import TimeDistributed, Bidirectional
-from keras.optimizers import Adam
+from tensorflow import keras
 
 def build_model():
     """
@@ -133,29 +126,27 @@ def build_model():
     """
     input_shape = (MAX_EQUATION_LENGTH, N_FEATURES)
 
-    model = Sequential()
+    model = keras.Sequential()
 
     # Encoder:
-    model.add(Bidirectional(LSTM(20), input_shape=input_shape))
+    model.add(keras.layers.Bidirectional(keras.layers.LSTM(20), input_shape=input_shape))
 
     # The RepeatVector-layer repeats the input n times
-    model.add(RepeatVector(MAX_RESULT_LENGTH))
+    model.add(keras.layers.RepeatVector(MAX_RESULT_LENGTH))
 
     # Decoder:
-    model.add(Bidirectional(LSTM(20, return_sequences=True)))
+    model.add(keras.layers.Bidirectional(keras.layers.LSTM(20, return_sequences=True)))
 
-    model.add(TimeDistributed(Dense(N_FEATURES)))
-    model.add(Activation('softmax'))
+    model.add(keras.layers.TimeDistributed(keras.layers.Dense(N_FEATURES)))
+    model.add(keras.layers.Activation('softmax'))
 
     model.compile(
         loss='categorical_crossentropy',
-        optimizer=Adam(lr=0.01),
+        optimizer=keras.optimizers.Adam(lr=0.01),
         metrics=['accuracy'],
     )
 
     return model
-
-from keras.callbacks import ModelCheckpoint
 
 def main():
     # Fix the random seed to get a consistent dataset
@@ -180,7 +171,7 @@ def main():
             batch_size=BATCH_SIZE,
             validation_data=(x_test, y_test),
             callbacks=[
-                ModelCheckpoint(
+                keras.callbacks.ModelCheckpoint(
                     'model.h5',
                     save_best_only=True,
                 ),
@@ -209,9 +200,6 @@ def predict(model, equation):
     return one_hot_to_string(predictions[0])[:-1]
 
 
-if __name__ == '__main__':
-    main()
-
 MIN_NUMBER = 0
 MAX_NUMBER = 999
 
@@ -228,3 +216,7 @@ EPOCHS = 200
 BATCH_SIZE = 256
 
 RANDOM_SEED = 1
+
+
+if __name__ == '__main__':
+    main()
